@@ -1,0 +1,206 @@
+<head>
+  <meta charset="UTF-8"></meta>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+  <title>Word Counter</title>
+  <style>
+    :root {
+      --text-color: #000;
+      --active-color: #4caf50;
+      --inactive-color: #888;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text-color: #000000;
+        --inactive-color: #aaa;
+      }
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .counter-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      background: transparent;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      background: transparent;
+      color: var(--text-color);
+    }
+
+    .stats {
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    .stats p {
+      display: inline-block;
+      margin-right: 20px;
+      margin-bottom: 5px;
+    }
+
+    .advanced-results {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #aaa;
+    }
+
+    .advanced-section {
+      margin-top: 20px;
+    }
+
+    .advanced-options {
+      display: none;
+      margin-top: 10px;
+      padding-left: 10px;
+    }
+
+    .advanced-options p {
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    button {
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: #fff;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+<div class="counter-container">
+  <h2>Word Counter</h2>
+  <textarea id="textInput" oninput="countWords()" placeholder="Start typing..."></textarea>
+
+  <!-- Basic counters -->
+  <div class="stats">
+    <p><strong>Words:</strong> <span id="wordCount">0</span></p>
+    <p><strong>Characters:</strong> <span id="charCount">0</span></p>
+    <p><strong>Spaces:</strong> <span id="spaceCount">0</span></p>
+    <p><strong>Dots:</strong> <span id="dotCount">0</span></p>
+  </div>
+
+  <!-- Advanced results right under basic -->
+  <div class="advanced-results" id="advancedResults">
+    <h4>Advanced Results:</h4>
+    <div id="advancedContent"></div>
+  </div>
+
+  <!-- Controls for advanced -->
+  <div class="advanced-section">
+    <button onclick="toggleAdvanced(event)">Show Advanced Features</button>
+    <div class="advanced-options" id="advancedOptions">
+      <p>Select features to activate:</p>
+      <label><input onchange="toggleFeature(this)" type="checkbox" value="sentenceCount" /> Sentence Count</label><br />
+      <label><input onchange="toggleFeature(this)" type="checkbox" value="paragraphCount" /> Paragraph Count</label><br />
+      <label><input onchange="toggleFeature(this)" type="checkbox" value="readingTime" /> Estimated Reading Time</label><br />
+      <label><input onchange="toggleFeature(this)" type="checkbox" value="avgWordLength" /> Average Word Length</label><br />
+      <label><input onchange="toggleFeature(this)" type="checkbox" value="longestWord" /> Longest Word</label><br />
+      <label><input onchange="toggleFeature(this)" type="checkbox" value="shortestWord" /> Shortest Word</label><br />
+    </div>
+  </div>
+</div>
+
+<script>
+  const activeFeatures = {};
+
+  function countWords() {
+    let text = document.getElementById("textInput").value;
+
+    // Basic counts
+    let words = text.trim().length > 0 ? text.trim().split(/\s+/).length : 0;
+    let characters = text.length;
+    let spaces = (text.match(/\s/g) || []).length;
+    let dots = (text.match(/\./g) || []).length;
+
+    document.getElementById("wordCount").innerText = words;
+    document.getElementById("charCount").innerText = characters;
+    document.getElementById("spaceCount").innerText = spaces;
+    document.getElementById("dotCount").innerText = dots;
+
+    // Advanced features
+    let resultsHTML = "";
+    if (activeFeatures.sentenceCount) {
+      let sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+      resultsHTML += `<p><strong>Sentence Count:</strong> ${sentences}</p>`;
+    }
+    if (activeFeatures.paragraphCount) {
+      let paragraphs = text.split(/\n+/).filter(p => p.trim().length > 0).length;
+      resultsHTML += `<p><strong>Paragraph Count:</strong> ${paragraphs}</p>`;
+    }
+    if (activeFeatures.readingTime) {
+      let minutes = (words / 200).toFixed(2);
+      resultsHTML += `<p><strong>Estimated Reading Time:</strong> ${minutes} min</p>`;
+    }
+    if (activeFeatures.avgWordLength) {
+      let wordList = text.trim().split(/\s+/).filter(w => w.length > 0);
+      let avgLength = wordList.length ? 
+          (wordList.join("").length / wordList.length).toFixed(2) : 0;
+      resultsHTML += `<p><strong>Average Word Length:</strong> ${avgLength}</p>`;
+    }
+    if (activeFeatures.longestWord) {
+      let wordList = text.trim().split(/\s+/).filter(w => w.length > 0);
+      let longest = wordList.length ? wordList.reduce((a, b) => a.length >= b.length ? a : b) : "";
+      resultsHTML += `<p><strong>Longest Word:</strong> ${longest}</p>`;
+    }
+    if (activeFeatures.shortestWord) {
+      let wordList = text.trim().split(/\s+/).filter(w => w.length > 0);
+      let shortest = wordList.length ? wordList.reduce((a, b) => a.length <= b.length ? a : b) : "";
+      resultsHTML += `<p><strong>Shortest Word:</strong> ${shortest}</p>`;
+    }
+
+    document.getElementById("advancedContent").innerHTML = resultsHTML || "<p><em>No advanced features selected.</em></p>";
+  }
+
+  function toggleAdvanced(e) {
+    const options = document.getElementById("advancedOptions");
+    const btn = e.target;
+    if (options.style.display === "block") {
+      options.style.display = "none";
+      btn.innerText = "Show Advanced Features";
+    } else {
+      options.style.display = "block";
+      btn.innerText = "Hide Advanced Features";
+    }
+  }
+
+  function toggleFeature(checkbox) {
+    activeFeatures[checkbox.value] = checkbox.checked;
+    countWords();
+    checkbox.parentElement.style.color = checkbox.checked ? "var(--active-color)" : "var(--text-color)";
+  }
+</script>
+
+</body>
+</html>
